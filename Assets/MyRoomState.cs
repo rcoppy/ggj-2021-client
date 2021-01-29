@@ -7,9 +7,9 @@
 
 using Colyseus.Schema;
 
-// namespace Dossamer.Ggj2021 {
+namespace Dossamer.Ggj2021 {
 	public partial class MyRoomState : Schema {
 		[Type(0, "string")]
 		public string mySynchronizedProperty = default(string);
 	}
-// }
+}

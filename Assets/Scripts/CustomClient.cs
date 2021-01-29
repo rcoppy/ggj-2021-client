@@ -67,7 +67,7 @@ namespace Dossamer.Ggj2021
 		public string roomName = "demo";
 
 		protected Client client;
-		protected Room<State> room;
+		protected Room<MyRoomState> room;
 
 		protected Room<IndexedDictionary<string, object>> roomFossilDelta;
 		protected Room<object> roomNoneSerializer;
@@ -114,7 +114,7 @@ namespace Dossamer.Ggj2021
 
 		public async void CreateRoom()
 		{
-			room = await client.Create<State>(roomName, new Dictionary<string, object>() { });
+			room = await client.Create<MyRoomState>(roomName, new Dictionary<string, object>() { });
 			//roomNoneSerializer = await client.Create("no_state", new Dictionary<string, object>() { });
 			//roomFossilDelta = await client.Create<IndexedDictionary<string, object>>("fossildelta", new Dictionary<string, object>() { });
 			RegisterRoomHandlers();
@@ -123,14 +123,14 @@ namespace Dossamer.Ggj2021
 		public async void JoinOrCreateRoom()
 		{
 			Debug.Log("Trying to join or create");
-			room = await client.JoinOrCreate<State>(roomName, new Dictionary<string, object>() { });
+			room = await client.JoinOrCreate<MyRoomState>(roomName, new Dictionary<string, object>() { });
 			RegisterRoomHandlers();
 			Debug.Log("Success!");
 		}
 
 		public async void JoinRoom()
 		{
-			room = await client.Join<State>(roomName, new Dictionary<string, object>() { });
+			room = await client.Join<MyRoomState>(roomName, new Dictionary<string, object>() { });
 			RegisterRoomHandlers();
 		}
 
@@ -144,7 +144,7 @@ namespace Dossamer.Ggj2021
 				return;
 			}
 
-			room = await client.Reconnect<State>(roomId, sessionId);
+			room = await client.Reconnect<MyRoomState>(roomId, sessionId);
 
 			Debug.Log("Reconnected into room successfully.");
 			RegisterRoomHandlers();
@@ -154,8 +154,8 @@ namespace Dossamer.Ggj2021
 		{
 			m_SessionIdText.text = "sessionId: " + room.SessionId;
 
-			room.State.entities.OnAdd += OnEntityAdd;
-			room.State.entities.OnRemove += OnEntityRemove;
+			/*room.State.entities.OnAdd += OnEntityAdd;
+			room.State.entities.OnRemove += OnEntityRemove;*/
 			room.State.TriggerAll();
 
 			PlayerPrefs.SetString("roomId", room.Id);
@@ -232,7 +232,7 @@ namespace Dossamer.Ggj2021
 			}
 		}
 
-		void OnStateChangeHandler(State state, bool isFirstState)
+		void OnStateChangeHandler(MyRoomState state, bool isFirstState)
 		{
 			// Setup room first state
 			Debug.Log("State has been updated!");
