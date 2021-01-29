@@ -16,7 +16,6 @@ using Settworks.Hexagons;
 
 namespace Dossamer.Ggj2021
 {
-
 	[Serializable]
 	class Metadata
 	{
@@ -77,6 +76,12 @@ namespace Dossamer.Ggj2021
 		// protected IndexedDictionary<Entity, GameObject> entities = new IndexedDictionary<Entity, GameObject>();
 
 		protected IndexedDictionary<Hex, GameObject> hexTiles = new IndexedDictionary<Hex, GameObject>();
+
+		[SerializeField]
+		protected GameObject hexMeshObject;
+
+		[SerializeField]
+		protected GameObject gridContainerObject;
 
 		// Use this for initialization
 		void Start()
@@ -272,12 +277,13 @@ namespace Dossamer.Ggj2021
 
 		void OnHexTileAdd(Hex hex, string key)
 		{
-			GameObject mesh = GameObject.CreatePrimitive(PrimitiveType.Quad);
-
-			Debug.Log("Tile add! x => " + hex.x + ", y => " + hex.y);
+			GameObject mesh = GameObject.Instantiate(hexMeshObject);
 
 			mesh.transform.position = HexCartesianOffsetToWorldPosition(hex);
 
+			Debug.Log("Tile add! x => " + hex.x + ", y => " + hex.y);
+
+			mesh.transform.parent = gridContainerObject.transform;
 			
 
 			// Add "player" to map of players
@@ -286,7 +292,7 @@ namespace Dossamer.Ggj2021
 			// On entity update...
 			hex.OnChange += (List<Colyseus.Schema.DataChange> changes) =>
 			{
-				mesh.transform.Translate(HexCartesianOffsetToWorldPosition(hex));
+				mesh.transform.position = HexCartesianOffsetToWorldPosition(hex);
 			};
 		}
 
