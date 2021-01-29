@@ -12,6 +12,8 @@ using Colyseus.Schema;
 
 using GameDevWare.Serialization;
 
+using Settworks.Hexagons;
+
 namespace Dossamer.Ggj2021
 {
 
@@ -69,10 +71,12 @@ namespace Dossamer.Ggj2021
 		protected Client client;
 		protected Room<MyRoomState> room;
 
-		protected Room<IndexedDictionary<string, object>> roomFossilDelta;
+		// protected Room<IndexedDictionary<string, object>> roomFossilDelta;
 		protected Room<object> roomNoneSerializer;
 
 		// protected IndexedDictionary<Entity, GameObject> entities = new IndexedDictionary<Entity, GameObject>();
+
+		protected IndexedDictionary<Hex, GameObject> hexTiles = new IndexedDictionary<Hex, GameObject>();
 
 		// Use this for initialization
 		void Start()
@@ -154,8 +158,8 @@ namespace Dossamer.Ggj2021
 		{
 			m_SessionIdText.text = "sessionId: " + room.SessionId;
 
-			/*room.State.entities.OnAdd += OnEntityAdd;
-			room.State.entities.OnRemove += OnEntityRemove;*/
+			room.State.grid.OnAdd += OnHexTileAdd;
+			room.State.grid.OnRemove += OnHexTileRemove;
 			room.State.TriggerAll();
 
 			PlayerPrefs.SetString("roomId", room.Id);
@@ -191,13 +195,8 @@ namespace Dossamer.Ggj2021
 		{
 			await room.Leave(false);
 
-			/*// Destroy player entities
-			foreach (KeyValuePair<Entity, GameObject> entry in entities)
-			{
-				Destroy(entry.Value);
-			}
-
-			entities.Clear();*/
+			// Destroy game tiles
+			DestroyGrid();
 		}
 
 		async void GetAvailableRooms()
@@ -236,6 +235,61 @@ namespace Dossamer.Ggj2021
 		{
 			// Setup room first state
 			Debug.Log("State has been updated!");
+
+			if (isFirstState)
+			{
+				/*InitHexGrid();*/
+			} else
+			{
+
+			}
+		}
+
+		/*void InitHexGrid()
+		{
+			foreach (var hex in room.State.grid.Values)
+			{
+				hex
+			}
+		}*/
+
+		void DestroyGrid()
+		{
+			foreach (KeyValuePair<Hex, GameObject> entry in hexTiles)
+			{
+				Destroy(entry.Value);
+			}
+
+			hexTiles.Clear();
+		}
+
+		void OnHexTileAdd(Hex hex, string key)
+		{
+			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
+			Debug.Log("Tile add! x => " + hex.x + ", y => " + hex.y);
+
+			cube.transform.position = new Vector3(hex.x, hex.y, 0);
+
+			
+
+			// Add "player" to map of players
+			hexTiles.Add(hex, cube);
+
+			// On entity update...
+			hex.OnChange += (List<Colyseus.Schema.DataChange> changes) =>
+			{
+				cube.transform.Translate(new Vector3(hex.x, hex.y, 0));
+			};
+		}
+
+		void OnHexTileRemove(Hex hex, string key)
+		{
+			GameObject cube;
+			hexTiles.TryGetValue(hex, out cube);
+			Destroy(cube);
+
+			hexTiles.Remove(hex);
 		}
 
 		/*void OnEntityAdd(Entity entity, string key)
