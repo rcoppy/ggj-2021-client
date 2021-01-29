@@ -263,23 +263,30 @@ namespace Dossamer.Ggj2021
 			hexTiles.Clear();
 		}
 
+		Vector3 HexCartesianOffsetToWorldPosition(Hex hex)
+		{
+			Vector2 worldCoord = HexCoord.AtOffset((int)hex.x, (int)hex.y).Position();
+
+			return new Vector3(worldCoord.x, 0, worldCoord.y);	
+		}
+
 		void OnHexTileAdd(Hex hex, string key)
 		{
-			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			GameObject mesh = GameObject.CreatePrimitive(PrimitiveType.Quad);
 
 			Debug.Log("Tile add! x => " + hex.x + ", y => " + hex.y);
 
-			cube.transform.position = new Vector3(hex.x, hex.y, 0);
+			mesh.transform.position = HexCartesianOffsetToWorldPosition(hex);
 
 			
 
 			// Add "player" to map of players
-			hexTiles.Add(hex, cube);
+			hexTiles.Add(hex, mesh);
 
 			// On entity update...
 			hex.OnChange += (List<Colyseus.Schema.DataChange> changes) =>
 			{
-				cube.transform.Translate(new Vector3(hex.x, hex.y, 0));
+				mesh.transform.Translate(HexCartesianOffsetToWorldPosition(hex));
 			};
 		}
 
