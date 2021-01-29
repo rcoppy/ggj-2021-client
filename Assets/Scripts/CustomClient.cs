@@ -72,7 +72,7 @@ namespace Dossamer.Ggj2021
 		protected Room<IndexedDictionary<string, object>> roomFossilDelta;
 		protected Room<object> roomNoneSerializer;
 
-		protected IndexedDictionary<Entity, GameObject> entities = new IndexedDictionary<Entity, GameObject>();
+		// protected IndexedDictionary<Entity, GameObject> entities = new IndexedDictionary<Entity, GameObject>();
 
 		// Use this for initialization
 		void Start()
@@ -84,7 +84,7 @@ namespace Dossamer.Ggj2021
 			m_JoinOrCreateButton.onClick.AddListener(JoinOrCreateRoom);
 			// m_JoinButton.onClick.AddListener(JoinRoom);
 			m_ReconnectButton.onClick.AddListener(ReconnectRoom);
-			m_SendMessageButton.onClick.AddListener(SendMessage);
+			/*m_SendMessageButton.onClick.AddListener(SendMessage);*/
 			m_LeaveButton.onClick.AddListener(LeaveRoom);
 			// m_GetAvailableRoomsButton.onClick.AddListener(GetAvailableRooms);
 		}
@@ -191,13 +191,13 @@ namespace Dossamer.Ggj2021
 		{
 			await room.Leave(false);
 
-			// Destroy player entities
+			/*// Destroy player entities
 			foreach (KeyValuePair<Entity, GameObject> entry in entities)
 			{
 				Destroy(entry.Value);
 			}
 
-			entities.Clear();
+			entities.Clear();*/
 		}
 
 		async void GetAvailableRooms()
@@ -215,7 +215,7 @@ namespace Dossamer.Ggj2021
 			}
 		}
 
-		void SendMessage()
+		/*void SendMessage()
 		{
 			if (room != null)
 			{
@@ -230,7 +230,7 @@ namespace Dossamer.Ggj2021
 			{
 				Debug.Log("Room is not connected!");
 			}
-		}
+		}*/
 
 		void OnStateChangeHandler(MyRoomState state, bool isFirstState)
 		{
@@ -238,7 +238,7 @@ namespace Dossamer.Ggj2021
 			Debug.Log("State has been updated!");
 		}
 
-		void OnEntityAdd(Entity entity, string key)
+		/*void OnEntityAdd(Entity entity, string key)
 		{
 			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
 
@@ -255,15 +255,15 @@ namespace Dossamer.Ggj2021
 				cube.transform.Translate(new Vector3(entity.x, entity.y, 0));
 			};
 		}
-
-		void OnEntityRemove(Entity entity, string key)
+*/
+		/*void OnEntityRemove(Entity entity, string key)
 		{
 			GameObject cube;
 			entities.TryGetValue(entity, out cube);
 			Destroy(cube);
 
 			entities.Remove(entity);
-		}
+		}*/
 
 		void OnApplicationQuit()
 		{

@@ -8,8 +8,11 @@
 using Colyseus.Schema;
 
 namespace Dossamer.Ggj2021 {
-	public partial class MyRoomState : Schema {
-		[Type(0, "string")]
-		public string mySynchronizedProperty = default(string);
+	public partial class Player : Schema {
+		[Type(0, "number")]
+		public float x = default(float);
+
+		[Type(1, "number")]
+		public float y = default(float);
 	}
 }
