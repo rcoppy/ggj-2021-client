@@ -14,5 +14,8 @@ namespace Dossamer.Ggj2021 {
 
 		[Type(1, "map", typeof(MapSchema<Player>))]
 		public MapSchema<Player> players = new MapSchema<Player>();
+
+		[Type(2, "map", typeof(MapSchema<Hex>))]
+		public MapSchema<Hex> grid = new MapSchema<Hex>();
 	}
 }
