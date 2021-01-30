@@ -12,8 +12,9 @@ public class PlayerLogic : MonoBehaviour
 
 
 	private bool isMoving = false;
-	private LTDescr myTween; 
+	private LTDescr myTween;
 
+	private Vector3 lastPosition;
 
 	public bool getIsMoving()
 	{
@@ -24,6 +25,7 @@ public class PlayerLogic : MonoBehaviour
     void Start()
     {
 		targetPosition = transform.position;
+		lastPosition = transform.position;
     }
 
 	public void setNewTarget(Vector3 finalPosition, Queue<Vector3> queue) {
@@ -40,10 +42,18 @@ public class PlayerLogic : MonoBehaviour
 			isMoving = true;
 			LTDescr myTween = tweenToNewPosition(movementQueue.Dequeue());
 		}
-    }
+	}
 
 	LTDescr tweenToNewPosition(Vector3 position)
 	{
+		// unfortunately there's no easy way to deep copy a transform
+		Quaternion oldRotation = transform.rotation;
+		transform.LookAt(position);
+		Quaternion newRotation = transform.rotation;
+		transform.rotation = oldRotation;
+
+		LeanTween.rotate(gameObject, newRotation.eulerAngles, moveSpeed).setEase(LeanTweenType.easeOutSine);
+
 		return LeanTween.move(gameObject, position, (position - transform.position).magnitude / moveSpeed).setEase(LeanTweenType.easeOutQuad)
 						.setOnComplete(() => {
 							if (movementQueue.Count > 0)

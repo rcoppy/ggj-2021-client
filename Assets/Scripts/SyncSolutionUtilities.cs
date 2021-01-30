@@ -10,6 +10,7 @@ namespace EditorUtilities.Solution
 {
 	public static class SyncSolutionUtilities
 	{
+#if UNITY_EDITOR
 		private static Type _syncVSType;
 		private static MethodInfo _syncSolutionMethodInfo;
 
@@ -88,5 +89,6 @@ namespace EditorUtilities.Solution
 			}
 			return files;
 		}
+#endif
 	}
 }
