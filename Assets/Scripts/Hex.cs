@@ -17,5 +17,8 @@ namespace Dossamer.Ggj2021 {
 
 		[Type(2, "number")]
 		public float index = default(float);
+
+		[Type(3, "boolean")]
+		public bool isOccupied = default(bool);
 	}
 }

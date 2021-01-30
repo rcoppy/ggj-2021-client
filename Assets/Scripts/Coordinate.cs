@@ -8,17 +8,11 @@
 using Colyseus.Schema;
 
 namespace Dossamer.Ggj2021 {
-	public partial class Player : Schema {
+	public partial class Coordinate : Schema {
 		[Type(0, "number")]
 		public float x = default(float);
 
 		[Type(1, "number")]
 		public float y = default(float);
-
-		[Type(2, "boolean")]
-		public bool clientIsUpdating = default(bool);
-
-		[Type(3, "array", typeof(ArraySchema<Coordinate>))]
-		public ArraySchema<Coordinate> moveQueue = new ArraySchema<Coordinate>();
 	}
 }
