@@ -5,17 +5,10 @@ using Settworks.Hexagons;
 
 namespace Dossamer.Ggj2021
 {
-	public class HexTile
+	public class HexTile : MonoBehaviour
 	{
-		Vector2 offsetCoords;
-		Vector2 axialCoords;
-		Vector3 unitySpatialCoords;
+		public Hex hexParent;
 
-		HexCoord hexCoords;
 
-		public HexTile()
-		{
-
-		}
 	}
 }

@@ -35,6 +35,17 @@ namespace Dossamer.Ggj2021
 		public string str;
 	}
 
+	class MovementData
+	{
+		public int x;
+		public int y;
+	}
+
+	class HexIndexData
+	{
+		public int hexIndex;
+	}
+
 	class TypeMessage
 	{
 		public bool hello;
@@ -76,12 +87,41 @@ namespace Dossamer.Ggj2021
 		// protected IndexedDictionary<Entity, GameObject> entities = new IndexedDictionary<Entity, GameObject>();
 
 		protected IndexedDictionary<Hex, GameObject> hexTiles = new IndexedDictionary<Hex, GameObject>();
+		protected IndexedDictionary<Player, GameObject> players = new IndexedDictionary<Player, GameObject>();
 
 		[SerializeField]
 		protected GameObject hexMeshObject;
 
 		[SerializeField]
 		protected GameObject gridContainerObject;
+
+		[SerializeField]
+		protected GameObject playerContainerObject;
+
+		[SerializeField]
+		protected Camera referenceCamera;
+
+		void CheckForTileClick()
+		{
+			if (Input.GetMouseButtonDown(0))
+			{ // if left button pressed...
+				Ray ray = referenceCamera.ScreenPointToRay(Input.mousePosition);
+				RaycastHit hit;
+				if (Physics.Raycast(ray, out hit))
+				{
+					// the object identified by hit.transform was clicked
+					// do whatever you want
+					if (hit.transform.gameObject.layer == LayerMask.NameToLayer("Tiles"))
+					{
+						if (hexTiles.ContainsValue(hit.transform.gameObject))
+						{
+							SendMovementMessage(hit.transform.gameObject.GetComponent<HexTile>().hexParent);
+						}
+					}
+				}
+			}
+		}
+
 
 		// Use this for initialization
 		void Start()
@@ -96,6 +136,11 @@ namespace Dossamer.Ggj2021
 			/*m_SendMessageButton.onClick.AddListener(SendMessage);*/
 			m_LeaveButton.onClick.AddListener(LeaveRoom);
 			// m_GetAvailableRoomsButton.onClick.AddListener(GetAvailableRooms);
+		}
+
+		void Update()
+		{
+			CheckForTileClick();
 		}
 
 		async void ConnectToServer()
@@ -165,6 +210,10 @@ namespace Dossamer.Ggj2021
 
 			room.State.grid.OnAdd += OnHexTileAdd;
 			room.State.grid.OnRemove += OnHexTileRemove;
+
+			room.State.players.OnAdd += OnPlayerAdd;
+			room.State.players.OnRemove += OnPlayerRemove;
+
 			room.State.TriggerAll();
 
 			PlayerPrefs.SetString("roomId", room.Id);
@@ -236,6 +285,17 @@ namespace Dossamer.Ggj2021
 			}
 		}*/
 
+		public async void SendMovementMessage(Hex target)
+		{
+			if (room != null)
+			{
+				HexIndexData payload = new HexIndexData();
+				payload.hexIndex = (int)target.index;
+
+				room.Send("move_player_to_hex", payload); 
+			}
+		}
+
 		void OnStateChangeHandler(MyRoomState state, bool isFirstState)
 		{
 			// Setup room first state
@@ -279,6 +339,8 @@ namespace Dossamer.Ggj2021
 		{
 			GameObject mesh = GameObject.Instantiate(hexMeshObject);
 
+			mesh.GetComponent<HexTile>().hexParent = hex;
+
 			mesh.transform.position = HexCartesianOffsetToWorldPosition(hex);
 
 			Debug.Log("Tile add! x => " + hex.x + ", y => " + hex.y);
@@ -296,6 +358,13 @@ namespace Dossamer.Ggj2021
 			};
 		}
 
+		public Vector3 CartesianOffsetToWorldPosition(Vector2 coords)
+		{
+			Vector2 worldCoord = HexCoord.AtOffset((int)coords.x, (int)coords.y).Position();
+
+			return new Vector3(worldCoord.x, 0, worldCoord.y);
+		}
+
 		void OnHexTileRemove(Hex hex, string key)
 		{
 			GameObject cube;
@@ -303,6 +372,40 @@ namespace Dossamer.Ggj2021
 			Destroy(cube);
 
 			hexTiles.Remove(hex);
+		}
+
+		void OnPlayerAdd(Player player, string key)
+		{
+			GameObject mesh = GameObject.Instantiate(PrefabTank.Instance.playerPiece);
+
+			mesh.transform.position = CartesianOffsetToWorldPosition(new Vector2(player.x, player.y));
+
+			Debug.Log("Player add! x => " + player.x + ", y => " + player.y);
+
+			mesh.transform.parent = playerContainerObject.transform;
+
+
+			// Add "player" to map of players
+			players.Add(player, mesh);
+
+			// On entity update...
+			player.OnChange += (List<Colyseus.Schema.DataChange> changes) =>
+			{
+				Vector3 target = CartesianOffsetToWorldPosition(new Vector2(player.x, player.y));
+				Queue<Vector3> queue = new Queue<Vector3>();
+				queue.Enqueue(target);
+
+				mesh.GetComponent<PlayerLogic>().setNewTarget(target, queue);
+			};
+		}
+
+		void OnPlayerRemove(Player player, string key)
+		{
+			GameObject mesh;
+			players.TryGetValue(player, out mesh);
+			Destroy(mesh);
+
+			players.Remove(player);
 		}
 
 		/*void OnEntityAdd(Entity entity, string key)
