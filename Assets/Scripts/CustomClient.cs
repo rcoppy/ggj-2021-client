@@ -60,7 +60,7 @@ namespace Dossamer.Ggj2021
 		public string str;
 	}
 
-	public class CustomClient : MonoBehaviour
+	public class CustomClient : Singleton<CustomClient>
 	{
 
 		// UI Buttons are attached through Unity Inspector
@@ -100,6 +100,21 @@ namespace Dossamer.Ggj2021
 
 		[SerializeField]
 		protected Camera referenceCamera;
+
+
+		public void UpdateIsPlayerMoving(bool isMoving)
+		{
+			SendClientIsUpdatingMessage(isMoving);
+		}
+
+		private async void SendClientIsUpdatingMessage(bool isClientUpdating)
+		{
+			if (room != null)
+			{
+				room.Send("update_client_status", new { isClientUpdating = isClientUpdating });
+			}
+		}
+
 
 		void CheckForTileClick()
 		{
@@ -393,7 +408,10 @@ namespace Dossamer.Ggj2021
 			{
 				Vector3 target = CartesianOffsetToWorldPosition(new Vector2(player.x, player.y));
 				Queue<Vector3> queue = new Queue<Vector3>();
-				queue.Enqueue(target);
+
+				player.moveQueue.ForEach((Coordinate coord) => {
+					queue.Enqueue(CartesianOffsetToWorldPosition(new Vector2(coord.x, coord.y)));
+				});
 
 				mesh.GetComponent<PlayerLogic>().setNewTarget(target, queue);
 			};
