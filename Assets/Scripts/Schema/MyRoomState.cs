@@ -12,10 +12,13 @@ namespace Dossamer.Ggj2021 {
 		[Type(0, "string")]
 		public string mySynchronizedProperty = default(string);
 
-		[Type(1, "map", typeof(MapSchema<Player>))]
-		public MapSchema<Player> players = new MapSchema<Player>();
+		[Type(1, "map", typeof(MapSchema<PlayerState>))]
+		public MapSchema<PlayerState> playerStates = new MapSchema<PlayerState>();
 
 		[Type(2, "map", typeof(MapSchema<Hex>))]
 		public MapSchema<Hex> grid = new MapSchema<Hex>();
+
+		[Type(3, "map", typeof(MapSchema<TileOccupant>))]
+		public MapSchema<TileOccupant> tileOccupants = new MapSchema<TileOccupant>();
 	}
 }

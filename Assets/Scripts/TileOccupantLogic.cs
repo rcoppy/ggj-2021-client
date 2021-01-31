@@ -4,11 +4,11 @@ using UnityEngine;
 using DentedPixel; // leantween
 
 namespace Dossamer.Ggj2021 {
-	public class PlayerLogic : MonoBehaviour
+	public class TileOccupantLogic : MonoBehaviour
 	{
 		public Vector3 targetPosition;
 
-		public float moveSpeed = 2.0f; // two tiles per second
+		public float moveSpeed = 4.0f; // four tiles per second
 		public Queue<Vector3> movementQueue = new Queue<Vector3>();
 
 
@@ -43,6 +43,8 @@ namespace Dossamer.Ggj2021 {
 				isMoving = true;
 				LTDescr myTween = tweenToNewPosition(movementQueue.Dequeue());
 			}
+
+			transform.LookAt(CustomClient.Instance.referenceCamera.transform);
 		}
 
 		LTDescr tweenToNewPosition(Vector3 position)
@@ -53,7 +55,7 @@ namespace Dossamer.Ggj2021 {
 			Quaternion newRotation = transform.rotation;
 			transform.rotation = oldRotation;
 
-			LeanTween.rotate(gameObject, newRotation.eulerAngles, moveSpeed).setEase(LeanTweenType.easeOutSine);
+			// LeanTween.rotate(gameObject, newRotation.eulerAngles, moveSpeed).setEase(LeanTweenType.easeOutSine);
 
 			return LeanTween.move(gameObject, position, (position - transform.position).magnitude / moveSpeed).setEase(LeanTweenType.easeOutQuad)
 							.setOnComplete(() => {

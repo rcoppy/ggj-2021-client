@@ -16,9 +16,12 @@ namespace Dossamer.Ggj2021 {
 		public float y = default(float);
 
 		[Type(2, "number")]
-		public float index = default(float);
+		public float _id = default(float);
 
 		[Type(3, "boolean")]
 		public bool isOccupied = default(bool);
+
+		[Type(4, "ref", typeof(TileOccupant))]
+		public TileOccupant occupant = new TileOccupant();
 	}
 }
