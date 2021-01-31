@@ -6,6 +6,9 @@ using DentedPixel; // leantween
 namespace Dossamer.Ggj2021 {
 	public class TileOccupantLogic : MonoBehaviour
 	{
+		[SerializeField]
+		bool isTile3D = false;
+
 		public Vector3 targetPosition;
 
 		public float moveSpeed = 4.0f; // four tiles per second
@@ -27,6 +30,11 @@ namespace Dossamer.Ggj2021 {
 		{
 			targetPosition = transform.position;
 			lastPosition = transform.position;
+
+			if (isTile3D)
+			{
+				transform.Rotate(Vector3.up, Random.Range(0f, 360f));
+			}
 		}
 
 		public void setNewTarget(Vector3 finalPosition, Queue<Vector3> queue) {
@@ -40,23 +48,38 @@ namespace Dossamer.Ggj2021 {
 		{
 			if (transform.position != targetPosition && !isMoving)
 			{
-				isMoving = true;
-				LTDescr myTween = tweenToNewPosition(movementQueue.Dequeue());
+				// make sure the path to target is valid
+				if (movementQueue.Count > 0)
+				{
+					isMoving = true;
+					LTDescr myTween = tweenToNewPosition(movementQueue.Dequeue());
+				} else
+				{
+					// otherwise abort
+					targetPosition = transform.position;
+				}
 			}
 
-			transform.LookAt(CustomClient.Instance.referenceCamera.transform);
+			if (!isTile3D)
+			{
+				transform.LookAt(CustomClient.Instance.referenceCamera.transform);
+			}
 		}
 
 		LTDescr tweenToNewPosition(Vector3 position)
 		{
-			// unfortunately there's no easy way to deep copy a transform
-			Quaternion oldRotation = transform.rotation;
-			transform.LookAt(position);
-			Quaternion newRotation = transform.rotation;
-			transform.rotation = oldRotation;
+			
 
-			// LeanTween.rotate(gameObject, newRotation.eulerAngles, moveSpeed).setEase(LeanTweenType.easeOutSine);
+			if (isTile3D)
+			{
+				// unfortunately there's no easy way to deep copy a transform
+				Quaternion oldRotation = transform.rotation;
+				transform.LookAt(position);
+				Quaternion newRotation = transform.rotation;
+				transform.rotation = oldRotation;
 
+				LeanTween.rotate(gameObject, newRotation.eulerAngles, moveSpeed).setEase(LeanTweenType.easeOutSine);
+			}
 			return LeanTween.move(gameObject, position, (position - transform.position).magnitude / moveSpeed).setEase(LeanTweenType.easeOutQuad)
 							.setOnComplete(() => {
 								if (movementQueue.Count > 0)
