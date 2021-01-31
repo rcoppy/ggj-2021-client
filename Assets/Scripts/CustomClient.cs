@@ -393,7 +393,6 @@ namespace Dossamer.Ggj2021
 
 		void OnTileOccupantAdd(TileOccupant tileOccupant, string key)
 		{
-			Debug.Log("hello?");
 			Hex hex;
 			room.State.grid.TryGetValue(tileOccupant.tileId, out hex);
 
