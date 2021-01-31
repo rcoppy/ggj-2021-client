@@ -43,7 +43,7 @@ namespace Dossamer.Ggj2021
 
 	class HexIndexData
 	{
-		public int hexIndex;
+		public string hexIndex;
 	}
 
 	class TypeMessage
@@ -87,7 +87,9 @@ namespace Dossamer.Ggj2021
 		// protected IndexedDictionary<Entity, GameObject> entities = new IndexedDictionary<Entity, GameObject>();
 
 		protected IndexedDictionary<Hex, GameObject> hexTiles = new IndexedDictionary<Hex, GameObject>();
-		protected IndexedDictionary<Player, GameObject> players = new IndexedDictionary<Player, GameObject>();
+		protected IndexedDictionary<PlayerState, GameObject> playerGameObjects = new IndexedDictionary<PlayerState, GameObject>();
+
+		protected IndexedDictionary<TileOccupant, GameObject> tileOccupantGameObjects = new IndexedDictionary<TileOccupant, GameObject>();
 
 		[SerializeField]
 		protected GameObject hexMeshObject;
@@ -96,10 +98,10 @@ namespace Dossamer.Ggj2021
 		protected GameObject gridContainerObject;
 
 		[SerializeField]
-		protected GameObject playerContainerObject;
+		protected GameObject tileOccupantContainerObject;
 
 		[SerializeField]
-		protected Camera referenceCamera;
+		public Camera referenceCamera;
 
 
 		public void UpdateIsPlayerMoving(bool isMoving)
@@ -226,8 +228,8 @@ namespace Dossamer.Ggj2021
 			room.State.grid.OnAdd += OnHexTileAdd;
 			room.State.grid.OnRemove += OnHexTileRemove;
 
-			room.State.players.OnAdd += OnPlayerAdd;
-			room.State.players.OnRemove += OnPlayerRemove;
+			room.State.tileOccupants.OnAdd += OnTileOccupantAdd;
+			room.State.tileOccupants.OnRemove += OnTileOccupantRemove;
 
 			room.State.TriggerAll();
 
@@ -305,7 +307,7 @@ namespace Dossamer.Ggj2021
 			if (room != null)
 			{
 				HexIndexData payload = new HexIndexData();
-				payload.hexIndex = (int)target.index;
+				payload.hexIndex = ((int)target._id).ToString(); // it's a bit of a mess b/c on server-side MapSchema must take string keys, can't do integers
 
 				room.Send("move_player_to_hex", payload); 
 			}
@@ -358,7 +360,7 @@ namespace Dossamer.Ggj2021
 
 			mesh.transform.position = HexCartesianOffsetToWorldPosition(hex);
 
-			Debug.Log("Tile add! x => " + hex.x + ", y => " + hex.y);
+			// Debug.Log("Tile add! x => " + hex.x + ", y => " + hex.y);
 
 			mesh.transform.parent = gridContainerObject.transform;
 			
@@ -389,41 +391,56 @@ namespace Dossamer.Ggj2021
 			hexTiles.Remove(hex);
 		}
 
-		void OnPlayerAdd(Player player, string key)
+		void OnTileOccupantAdd(TileOccupant tileOccupant, string key)
 		{
-			GameObject mesh = GameObject.Instantiate(PrefabTank.Instance.playerPiece);
+			Debug.Log("hello?");
+			Hex hex;
+			room.State.grid.TryGetValue(tileOccupant.tileId, out hex);
 
-			mesh.transform.position = CartesianOffsetToWorldPosition(new Vector2(player.x, player.y));
-
-			Debug.Log("Player add! x => " + player.x + ", y => " + player.y);
-
-			mesh.transform.parent = playerContainerObject.transform;
-
-
-			// Add "player" to map of players
-			players.Add(player, mesh);
-
-			// On entity update...
-			player.OnChange += (List<Colyseus.Schema.DataChange> changes) =>
+			if (hex != null)
 			{
-				Vector3 target = CartesianOffsetToWorldPosition(new Vector2(player.x, player.y));
-				Queue<Vector3> queue = new Queue<Vector3>();
+				GameObject mesh = Instantiate(Constants.Instance.occupantTypePrefabs[(int)tileOccupant.occupantTypeId]);
+				mesh.transform.position = CartesianOffsetToWorldPosition(new Vector2(hex.x, hex.y));
 
-				player.moveQueue.ForEach((Coordinate coord) => {
-					queue.Enqueue(CartesianOffsetToWorldPosition(new Vector2(coord.x, coord.y)));
-				});
+				Debug.Log($"{tileOccupant.textDescription} add! x => {hex.x}, y => {hex.y}");
 
-				mesh.GetComponent<PlayerLogic>().setNewTarget(target, queue);
-			};
+				mesh.transform.parent = tileOccupantContainerObject.transform;
+
+				// Add "player" to map of players
+				tileOccupantGameObjects.Add(tileOccupant, mesh);
+
+				// On entity update...
+				tileOccupant.OnChange += (List<Colyseus.Schema.DataChange> changes) =>
+				{
+					Hex newHex;
+					room.State.grid.TryGetValue(tileOccupant.tileId, out newHex);
+
+					if (newHex != null)
+					{
+						Vector3 target = CartesianOffsetToWorldPosition(new Vector2(newHex.x, newHex.y));
+						Queue<Vector3> queue = new Queue<Vector3>();
+
+						tileOccupant.moveQueue.ForEach((Coordinate coord) =>
+						{
+							queue.Enqueue(CartesianOffsetToWorldPosition(new Vector2(coord.x, coord.y)));
+						});
+
+						mesh.GetComponent<TileOccupantLogic>().setNewTarget(target, queue);
+					}
+				};
+			} else
+			{
+				Debug.LogWarning("hex was null!");
+			}
 		}
 
-		void OnPlayerRemove(Player player, string key)
+		void OnTileOccupantRemove(TileOccupant occupant, string key)
 		{
 			GameObject mesh;
-			players.TryGetValue(player, out mesh);
+			tileOccupantGameObjects.TryGetValue(occupant, out mesh);
 			Destroy(mesh);
 
-			players.Remove(player);
+			tileOccupantGameObjects.Remove(occupant);
 		}
 
 		/*void OnEntityAdd(Entity entity, string key)
